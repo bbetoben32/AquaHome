@@ -1,51 +1,64 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import Button from '../components/Button';
+import { useEffect, useRef } from 'react';
+import Button from '../components/ui/boton';
+import { estilos } from '../styles/style_index';
 
 export default function WelcomeScreen() {
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoPosition = useRef(new Animated.Value(0)).current;
+  const buttonOpacity = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(logoPosition, {
+        toValue: -120,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonOpacity, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   return (
     <LinearGradient
-      colors={['#1a3a5c', '#2d6a9f', '#7aa8c7']}
-      style={styles.container}
+      colors={['#0F4C75', '#3282B8', '#D9D9D9']}
+      style={estilos.container}
     >
-      <View style={styles.logoContainer}>
+      <Animated.View
+        style={[
+          estilos.logoContainer,
+          {
+            opacity: logoOpacity,
+            transform: [{ translateY: logoPosition }],
+          },
+        ]}
+      >
         <Image
           source={require('../assets/images/logo1.png')}
-          style={styles.logo}
+          style={estilos.logo}
           resizeMode="contain"
         />
-        <Text style={styles.title}>AQUAHOME</Text>
-      </View>
+        <Text style={estilos.title}>AQUAHOME</Text>
+      </Animated.View>
 
-      <Button
-        text="Entrar"
-        onPress={() => router.push('/(auth)/login')}
-      />
+      <Animated.View style={[estilos.buttonContainer, { opacity: buttonOpacity }]}>
+        <Button
+          text="Entrar"
+          onPress={() => router.push('../(auth)/registro')}
+        />
+      </Animated.View>
     </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 100,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    gap: 16,
-  },
-  logo: {
-    width: 150,
-    height: 150,
-  },
-  title: {
-    fontFamily: 'Poppins_700Bold',
-    fontSize: 40,
-    fontWeight: 'bold',
-    color: 'white',
-    letterSpacing: 4,
-  },
-});
