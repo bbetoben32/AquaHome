@@ -2,12 +2,30 @@ import { View, Text, StyleSheet } from 'react-native';
 
 interface TarjetaSensorProps {
   nombre: string;
-  valor: number;
+  valor: number | string;
   unidad: string;
   estado: string;
 }
 
+const getColorEstado = (estado: string) => {
+  switch (estado) {
+    case 'Normal':
+    case 'Óptima':
+    case 'Limpia':
+    case 'Adecuado':
+      return { bg: 'rgba(39,174,96,0.15)', text: '#27AE60' };
+    case 'Fuera de rango':
+    case 'Turbia':
+    case 'Elevado':
+      return { bg: 'rgba(231,76,60,0.15)', text: '#E74C3C' };
+    default:
+      return { bg: 'rgba(149,165,166,0.15)', text: '#95A5A6' };
+  }
+};
+
 export default function TarjetaSensor({ nombre, valor, unidad, estado }: TarjetaSensorProps) {
+  const colores = getColorEstado(estado);
+
   return (
     <View style={estilos.tarjeta}>
       <Text style={estilos.nombre}>{nombre}</Text>
@@ -15,8 +33,8 @@ export default function TarjetaSensor({ nombre, valor, unidad, estado }: Tarjeta
         <Text style={estilos.valor}>{valor}</Text>
         <Text style={estilos.unidad}> {unidad}</Text>
       </View>
-      <View style={estilos.estadoBadge}>
-        <Text style={estilos.estadoTexto}>{estado}</Text>
+      <View style={[estilos.estadoBadge, { backgroundColor: colores.bg }]}>
+        <Text style={[estilos.estadoTexto, { color: colores.text }]}>{estado}</Text>
       </View>
     </View>
   );
@@ -52,7 +70,6 @@ const estilos = StyleSheet.create({
     color: '#0F4C75',
   },
   estadoBadge: {
-    backgroundColor: 'rgba(39,174,96,0.15)',
     paddingHorizontal: 10,
     paddingVertical: 3,
     borderRadius: 20,
@@ -61,6 +78,5 @@ const estilos = StyleSheet.create({
   estadoTexto: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 12,
-    color: '#27AE60',
   },
 });

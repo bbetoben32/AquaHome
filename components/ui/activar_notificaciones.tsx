@@ -1,6 +1,9 @@
 import { View, Text, Switch, StyleSheet } from 'react-native';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const NOTIF_KEY = 'notificaciones_activas';
 
 interface TarjetaNotificacionesProps {
   onCambio?: (activas: boolean) => void;
@@ -9,8 +12,15 @@ interface TarjetaNotificacionesProps {
 export default function TarjetaNotificaciones({ onCambio }: TarjetaNotificacionesProps) {
   const [activas, setActivas] = useState(true);
 
-  const handleCambio = (valor: boolean) => {
+  useEffect(() => {
+    AsyncStorage.getItem(NOTIF_KEY).then(val => {
+      if (val !== null) setActivas(val === 'true');
+    });
+  }, []);
+
+  const handleCambio = async (valor: boolean) => {
     setActivas(valor);
+    await AsyncStorage.setItem(NOTIF_KEY, String(valor));
     onCambio?.(valor);
   };
 

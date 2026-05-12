@@ -1,15 +1,39 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function EstadoAgua() {
+interface EstadoAguaProps {
+  apta?: boolean;
+  timestamp?: string;
+}
+
+export default function EstadoAgua({ apta = true, timestamp }: EstadoAguaProps) {
+  const formatearHora = (ts?: string) => {
+    if (!ts) return '--';
+    const fecha = new Date(ts.endsWith('Z') ? ts : ts + 'Z');
+    return fecha.toLocaleTimeString('es-CO', {
+      hour:   '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+  };
+
   return (
     <View style={estilos.container}>
       <View style={estilos.iconoContainer}>
-        <Ionicons name="checkmark" size={40} color="white" />
+        <Ionicons
+          name={apta ? 'checkmark' : 'warning'}
+          size={40}
+          color="white"
+        />
       </View>
-      <Text style={estilos.estado}>Todo correcto</Text>
+      <Text style={estilos.estado}>
+        {apta ? 'Todo correcto' : 'Alerta de calidad'}
+      </Text>
       <View style={estilos.lectura}>
-        <Text style={estilos.lecturaTexto}>Ultima lectura: hace 11 seg</Text>
+        <Text style={estilos.lecturaTexto}>
+          Ultima lectura: {formatearHora(timestamp)}
+        </Text>
       </View>
     </View>
   );

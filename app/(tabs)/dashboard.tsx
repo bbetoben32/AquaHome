@@ -4,8 +4,13 @@ import { estilos } from '../../styles/style_dashboard';
 import MenuCalidad from '../../components/ui/menu_calidad';
 import AnimatedTabBar from '../../components/ui/barra_navegacion';
 import MaintenanceCard from '../../components/ui/tarjeta_mantenimiento';
+import { useReadings } from '../../hooks/useReadings';
+import { useMantenimiento } from '../../hooks/useMantenimiento';
 
 export default function DashboardScreen() {
+  const { ultimaLectura, estado } = useReadings();
+  const { diasRestantes, totalDias, registrar } = useMantenimiento();
+
   return (
     <View style={estilos.container}>
       <Text style={estilos.titulo}>AquaHome</Text>
@@ -15,16 +20,18 @@ export default function DashboardScreen() {
         contentContainerStyle={{ paddingBottom: 120, gap: 20 }}
       >
         <View style={{ width: '100%', zIndex: 10, alignItems: 'center' }}>
-          <TanqueAgua nivel={70} />
+          <TanqueAgua nivel={70}
+          apta={estado?.status !== 'NO APTA'}
+          timestamp={ultimaLectura?.timestamp} />
         </View>
         <View style={{ width: '100%', zIndex: 10 }}>
-          <MenuCalidad />
+          <MenuCalidad lectura={ultimaLectura} estado={estado} />
         </View>
         <View style={{ width: '100%', zIndex: 10 }}>
           <MaintenanceCard
-            daysRemaining={47}
-            totalDays={90}
-            onRegisterPress={() => console.log('Mantenimiento registrado')}
+            daysRemaining={diasRestantes}
+            totalDays={totalDias}
+            onMaintenanceRegistered={registrar}
           />
         </View>
       </ScrollView>

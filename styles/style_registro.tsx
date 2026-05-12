@@ -51,4 +51,58 @@ export const estilos = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
   },
+
+  reqContainer: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  barraFondo: {
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
+    marginBottom: 6,
+    overflow: 'hidden',
+  },
+  barraRelleno: {
+    height: 6,
+    borderRadius: 10,
+  },
+  nivelTexto: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 12,
+    marginBottom: 10,
+    textAlign: 'right',
+  },
+  reqFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  iconoCirculo: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  reqTexto: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 12,
+  },
+  coincidenciaFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingHorizontal: 4,
+    gap: 6,
+  },
+  coincidenciaTexto: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+  },
 });

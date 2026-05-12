@@ -1,45 +1,27 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { useState } from 'react';
 import TarjetaAlerta from './tarjeta_alertas';
-
-interface Alerta {
-  id: string;
-  mensaje: string;
-  estado: string;
-  hora: string;
-  tipo: 'parametro' | 'sensor';
-}
-
-const ALERTAS_HOY: Alerta[] = [
-  { id: '1', mensaje: 'pH en 8.7', estado: 'algo alto', hora: '14:00', tipo: 'parametro' },
-  { id: '2', mensaje: 'Turbidez en 4.2', estado: 'fuera de rango', hora: '11:30', tipo: 'parametro' },
-  { id: '3', mensaje: 'Sensor desconectado', estado: 'fallo', hora: '09:15', tipo: 'sensor' },
-];
-
-const ALERTAS_SEMANA: Alerta[] = [
-  { id: '4', mensaje: 'pH en 8.9', estado: 'alto', hora: 'Lun 08:00', tipo: 'parametro' },
-  { id: '5', mensaje: 'Temperatura en 27°C', estado: 'algo alto', hora: 'Mar 13:00', tipo: 'parametro' },
-  { id: '6', mensaje: 'Señal débil', estado: 'advertencia', hora: 'Mié 17:30', tipo: 'sensor' },
-  { id: '7', mensaje: 'TDS en 520 ppm', estado: 'fuera de rango', hora: 'Jue 10:00', tipo: 'parametro' },
-];
+import { useAlertas } from '../../hooks/useAlertas';
 
 interface ListaAlertasProps {
   filtro: 'hoy' | 'semanal';
 }
 
+const formatHora = (ts: string) => {
+  if (!ts) return '--';  // ← agrega esto
+  const fecha = new Date(ts.endsWith('Z') ? ts : ts + 'Z');
+  return fecha.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: false });
+};
+
 export default function ListaAlertas({ filtro }: ListaAlertasProps) {
-  const [alertasHoy, setAlertasHoy] = useState<Alerta[]>(ALERTAS_HOY);
-  const [alertasSemana, setAlertasSemana] = useState<Alerta[]>(ALERTAS_SEMANA);
+  const { alertas, loading, eliminar } = useAlertas(filtro);
 
-  const alertas = filtro === 'hoy' ? alertasHoy : alertasSemana;
-
-  const eliminar = (id: string) => {
-    if (filtro === 'hoy') {
-      setAlertasHoy(prev => prev.filter(a => a.id !== id));
-    } else {
-      setAlertasSemana(prev => prev.filter(a => a.id !== id));
-    }
-  };
+  if (loading) {
+    return (
+      <View style={estilos.vacio}>
+        <Text style={estilos.vacioTexto}>Cargando...</Text>
+      </View>
+    );
+  }
 
   if (alertas.length === 0) {
     return (
@@ -55,7 +37,11 @@ export default function ListaAlertas({ filtro }: ListaAlertasProps) {
         {alertas.map((alerta, index) => (
           <View key={alerta.id}>
             <TarjetaAlerta
-              {...alerta}
+              id={String(alerta.id)}
+              mensaje={alerta.mensaje}
+              estado={alerta.estado}
+              hora={formatHora(alerta.created_at)}
+              tipo={alerta.tipo}
               onEliminar={eliminar}
             />
             {index < alertas.length - 1 && <View style={estilos.separador} />}

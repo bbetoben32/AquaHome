@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,14 @@ function CampoEditable({
   const [editando, setEditando] = useState(false);
   const [valor, setValor] = useState(campo.valor);
   const [valorTemp, setValorTemp] = useState(campo.valor);
+
+  // ← actualiza cuando el prop cambia externamente
+  useEffect(() => {
+    if (!editando) {
+      setValor(campo.valor);
+      setValorTemp(campo.valor);
+    }
+  }, [campo.valor]);
 
   const handleEditar = () => {
     setValorTemp(valor);

@@ -1,25 +1,35 @@
 import { View, Text, Animated, Easing } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
-import { useRef, useState } from 'react';
+import { useRef, useEffect } from 'react';
+import { useRouter } from 'expo-router';
 import Boton from '../../components/ui/boton';
 import BotonBuscando from '../../components/ui/buscar_boton';
 import BotonCancelar from '../../components/ui/boton_cancelar';
 import { estilos } from '../../styles/style_vincular';
+import { useEsp32Scanner } from '../../hooks/useEsp32Scanner';
 
 export default function VincularScreen() {
-  const [buscando, setBuscando] = useState(false);
+  const router = useRouter();
+  const { status, deviceIp, errorMessage, startScan, cancelScan } =
+    useEsp32Scanner();
 
-  const escala1 = useRef(new Animated.Value(1)).current;
-  const escala2 = useRef(new Animated.Value(1)).current;
-  const escala3 = useRef(new Animated.Value(1)).current;
+  const buscando = status === 'scanning';
+
+  // ── Animación radar ──────────────────────────────────────────────
+  const escala1   = useRef(new Animated.Value(1)).current;
+  const escala2   = useRef(new Animated.Value(1)).current;
+  const escala3   = useRef(new Animated.Value(1)).current;
   const opacidad1 = useRef(new Animated.Value(0.7)).current;
   const opacidad2 = useRef(new Animated.Value(0.7)).current;
   const opacidad3 = useRef(new Animated.Value(0.7)).current;
-
   const animaciones = useRef<Animated.CompositeAnimation[]>([]);
 
-  const crearAnimacion = (escala: Animated.Value, opacidad: Animated.Value, delay: number) =>
+  const crearAnimacion = (
+    escala: Animated.Value,
+    opacidad: Animated.Value,
+    delay: number
+  ) =>
     Animated.loop(
       Animated.sequence([
         Animated.delay(delay),
@@ -29,7 +39,7 @@ export default function VincularScreen() {
             duration: 2500,
             easing: Easing.out(Easing.ease),
             useNativeDriver: true,
-         }),
+          }),
           Animated.timing(opacidad, {
             toValue: 0,
             duration: 2500,
@@ -38,7 +48,7 @@ export default function VincularScreen() {
           }),
         ]),
         Animated.parallel([
-          Animated.timing(escala, { toValue: 1, duration: 0, useNativeDriver: true }),
+          Animated.timing(escala,   { toValue: 1,   duration: 0, useNativeDriver: true }),
           Animated.timing(opacidad, { toValue: 0.7, duration: 0, useNativeDriver: true }),
         ]),
       ])
@@ -55,7 +65,7 @@ export default function VincularScreen() {
   };
 
   const detenerAnimacion = () => {
-    animaciones.current.forEach(a => a.stop());
+    animaciones.current.forEach((a) => a.stop());
     escala1.setValue(1);
     escala2.setValue(1);
     escala3.setValue(1);
@@ -64,14 +74,28 @@ export default function VincularScreen() {
     opacidad3.setValue(0.7);
   };
 
-  const handleBuscar = () => {
-    setBuscando(true);
-    animarRadar();
-  };
+  // ── Reaccionar a cambios de status ───────────────────────────────
+  useEffect(() => {
+    if (status === 'scanning') {
+      animarRadar();
+    } else {
+      detenerAnimacion();
+    }
 
-  const handleCancelar = () => {
-    setBuscando(false);
-    detenerAnimacion();
+    if (status === 'found' && deviceIp) {
+      setTimeout(() => router.replace('/(tabs)/dashboard'), 800);
+    }
+  }, [status]);
+
+  // ── Texto dinámico según estado ──────────────────────────────────
+  const getMensaje = () => {
+    switch (status) {
+      case 'scanning':   return 'Buscando dispositivo Aqua\nen la red...';
+      case 'found':      return `¡Dispositivo encontrado!`;
+      case 'not_found':  return 'No se encontró ningún\ndispositivo Aqua en la red.';
+      case 'error':      return errorMessage ?? 'Ocurrió un error.';
+      default:           return 'Recuerda estar conectado a la\nmisma red wi-fi que tu dispositivo';
+    }
   };
 
   return (
@@ -82,6 +106,7 @@ export default function VincularScreen() {
       <View style={estilos.contenido}>
         <Text style={estilos.titulo}>Vincula con tu{'\n'}Aqua</Text>
 
+        {/* ── Radar ── */}
         <View style={estilos.radarContainer}>
           <Animated.View style={{
             width: 90, height: 90, borderRadius: 999,
@@ -112,22 +137,22 @@ export default function VincularScreen() {
                 contentFit="contain"
               />
             )}
+            {status === 'found' && (
+              <Text style={{ fontSize: 36, color: '#fff' }}>✓</Text>
+            )}
           </View>
         </View>
 
-        <Text style={estilos.texto}>
-          Recuerda estar conectado a la{'\n'}misma red wi-fi que tu dispositivo
-        </Text>
+        {/* ── Mensaje ── */}
+        <Text style={estilos.texto}>{getMensaje()}</Text>
 
+        {/* ── Botones ── */}
         {!buscando ? (
-          <Boton text="Buscar" onPress={handleBuscar} />
+          <Boton text="Buscar" onPress={startScan} />
         ) : (
           <View style={estilos.botonesContainer}>
             <BotonBuscando />
-            <BotonCancelar
-              text="Cancelar"
-              onPress={handleCancelar}
-            />
+            <BotonCancelar text="Cancelar" onPress={cancelScan} />
           </View>
         )}
       </View>

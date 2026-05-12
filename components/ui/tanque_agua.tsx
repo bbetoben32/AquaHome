@@ -14,14 +14,21 @@ import EstadoAgua from './estado_agua';
 const TANQUE_ALTO = 260;
 const TANQUE_ANCHO = 300;
 
+const COLOR_NORMAL = '#3282B8';
+const COLOR_ALERTA = '#1b2234';
+
 interface TanqueAguaProps {
   nivel: number;
+  apta?: boolean;
+  timestamp?: string;
 }
 
-export default function TanqueAgua({ nivel = 70 }: TanqueAguaProps) {
+export default function TanqueAgua({ nivel = 70, apta = true, timestamp }: TanqueAguaProps) {
   const alturaAgua = useSharedValue(0);
   const ondaX = useSharedValue(0);
   const [mostrarEstado, setMostrarEstado] = useState(false);
+
+  const colorAgua = apta ? COLOR_NORMAL : COLOR_ALERTA;
 
   const iniciarOla = () => {
     ondaX.value = 0;
@@ -60,22 +67,21 @@ export default function TanqueAgua({ nivel = 70 }: TanqueAguaProps) {
   return (
     <View style={estilos.tanque}>
       <View style={estilos.interior}>
-        <Animated.View style={[estilos.agua, estiloAgua]}>
+        <Animated.View style={[estilos.agua, estiloAgua, { backgroundColor: colorAgua }]}>
           <Animated.View style={[estilos.ondaContainer, estiloOnda]}>
             <Svg width={TANQUE_ANCHO * 3} height={30}>
-              <Path d={ola} fill="#3282B8" />
+              <Path d={ola} fill={colorAgua} />
               <Path
                 d={`M${w},15 Q${w * 1.25},-5 ${w * 1.5},15 Q${w * 1.75},35 ${w * 2},15 Q${w * 2.25},-5 ${w * 2.5},15 Q${w * 2.75},35 ${w * 3},15 L${w * 3},30 L${w},30 Z`}
-                fill="#3282B8"
+                fill={colorAgua}
               />
             </Svg>
           </Animated.View>
         </Animated.View>
       </View>
-
       {mostrarEstado && (
         <View style={estilos.overlay}>
-          <EstadoAgua />
+          <EstadoAgua apta={apta} timestamp={timestamp} />
         </View>
       )}
     </View>
@@ -98,7 +104,6 @@ const estilos = StyleSheet.create({
   },
   agua: {
     width: '100%',
-    backgroundColor: '#3282B8',
   },
   ondaContainer: {
     position: 'absolute',

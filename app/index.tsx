@@ -11,6 +11,7 @@ export default function WelcomeScreen() {
   const buttonOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    
     Animated.sequence([
       Animated.timing(logoOpacity, {
         toValue: 1,

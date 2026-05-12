@@ -3,7 +3,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useState, useRef } from 'react';
 import TarjetaSensor from './tarjetas_estado';
 
-export default function MenuCalidad() {
+interface MenuCalidadProps {
+  lectura?: any;
+  estado?: any;
+}
+
+export default function MenuCalidad({ lectura, estado }: MenuCalidadProps) {
   const [abierto, setAbierto] = useState(false);
   const alturaAnim = useRef(new Animated.Value(0)).current;
 
@@ -16,12 +21,29 @@ export default function MenuCalidad() {
     setAbierto(!abierto);
   };
 
+  const calidad = estado?.status === 'APTA' ? 'Buena' : estado?.status === 'NO APTA' ? 'Mala' : 'Buena';
+  const colorCalidad = estado?.status === 'NO APTA' ? '#E74C3C' : '#27AE60';
+
+  const getEstado = (param: string, val?: number) => {
+    if (val == null) return 'Sin datos';
+    const rangos: Record<string, [number, number]> = {
+      ph:          [6.5, 9.0],
+      temperature: [0,   30],
+      turbidity:   [0,   2],
+      tds:         [0,   500],
+    };
+    const [min, max] = rangos[param];
+    return val >= min && val <= max
+      ? param === 'ph' ? 'Normal' : param === 'temperature' ? 'Óptima' : param === 'turbidity' ? 'Limpia' : 'Adecuado'
+      : 'Fuera de rango';
+  };
+
   return (
     <View style={estilos.container}>
       <TouchableOpacity style={estilos.header} onPress={toggleMenu}>
         <Text style={estilos.headerNormal}>
           Calidad del agua:{' '}
-          <Text style={estilos.estado}>Buena</Text>
+          <Text style={[estilos.estado, { color: colorCalidad }]}>{calidad}</Text>
         </Text>
         <Ionicons
           name={abierto ? 'chevron-up' : 'chevron-down'}
@@ -29,13 +51,12 @@ export default function MenuCalidad() {
           color="#0F4C75"
         />
       </TouchableOpacity>
-
       <Animated.View style={{ height: alturaAnim, overflow: 'hidden' }}>
         <View style={estilos.grid}>
-          <TarjetaSensor nombre="pH" valor={7.2} unidad="ph" estado="Normal" />
-          <TarjetaSensor nombre="Temperatura" valor={22.4} unidad="°C" estado="Óptima" />
-          <TarjetaSensor nombre="Turbidez" valor={1.8} unidad="NTU" estado="Limpia" />
-          <TarjetaSensor nombre="Solido" valor={300} unidad="ppm" estado="Adecuado" />
+          <TarjetaSensor nombre="pH"         valor={lectura?.ph          ?? '--'} unidad="pH"  estado={getEstado('ph',          lectura?.ph)} />
+          <TarjetaSensor nombre="Temperatura" valor={lectura?.temperature ?? '--'} unidad="°C"  estado={getEstado('temperature', lectura?.temperature)} />
+          <TarjetaSensor nombre="Turbidez"    valor={lectura?.turbidity   ?? '--'} unidad="NTU" estado={getEstado('turbidity',   lectura?.turbidity)} />
+          <TarjetaSensor nombre="Solido"      valor={lectura?.tds         ?? '--'} unidad="ppm" estado={getEstado('tds',         lectura?.tds)} />
         </View>
       </Animated.View>
     </View>
@@ -49,17 +70,17 @@ const estilos = StyleSheet.create({
     borderRadius: 16,
   },
   header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 14,
-      width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    width: '100%',
   },
   headerNormal: {
-      fontFamily: 'Poppins_400Regular',
-      fontSize: 20,
-      color: '#0F4C75',
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 20,
+    color: '#0F4C75',
   },
   estado: {
     fontFamily: 'Poppins_700Bold',
