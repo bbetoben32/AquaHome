@@ -42,11 +42,38 @@ def create_alert(db: Session, device_id: int, mensaje: str, estado: str, tipo: s
     db.refresh(alert)
     return alert
 
+def marcar_leida(db: Session, alert_id: int, device_id: int):
+    alert = db.query(Alert).filter(
+        Alert.id        == alert_id,
+        Alert.device_id == device_id
+    ).first()
+    if alert:
+        alert.leida = True
+        db.commit()
+        db.refresh(alert)
+    return alert
+
 def get_alerts_today(db: Session, device_id: int):
     hoy = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     return db.query(Alert).filter(
         Alert.device_id  == device_id,
         Alert.created_at >= hoy
+    ).order_by(desc(Alert.created_at)).all()  # ← todas, leídas y no leídas
+
+def get_alerts_today_unread(db: Session, device_id: int):
+    hoy = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    return db.query(Alert).filter(
+        Alert.device_id  == device_id,
+        Alert.created_at >= hoy,
+        Alert.leida      == False  # ← solo no leídas para notificaciones
+    ).order_by(desc(Alert.created_at)).all()
+
+def get_alerts_week_unread(db: Session, device_id: int):
+    semana = datetime.utcnow() - timedelta(days=7)
+    return db.query(Alert).filter(
+        Alert.device_id  == device_id,
+        Alert.created_at >= semana,
+        Alert.leida      == False
     ).order_by(desc(Alert.created_at)).all()
 
 def get_alerts_week(db: Session, device_id: int):
@@ -55,13 +82,3 @@ def get_alerts_week(db: Session, device_id: int):
         Alert.device_id  == device_id,
         Alert.created_at >= semana
     ).order_by(desc(Alert.created_at)).all()
-
-def delete_alert(db: Session, alert_id: int, device_id: int):
-    alert = db.query(Alert).filter(
-        Alert.id        == alert_id,
-        Alert.device_id == device_id
-    ).first()
-    if alert:
-        db.delete(alert)
-        db.commit()
-    return alert

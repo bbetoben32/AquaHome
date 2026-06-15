@@ -3,31 +3,29 @@ import random
 import time
 from datetime import datetime
 
-# ── Configuración ──────────────────────────────────────────────────
 STREAM_URL    = "http://127.0.0.1:8000/api/v1/iot/stream"
 SAVE_URL      = "http://127.0.0.1:8000/api/v1/iot/data"
 DEVICE_KEY    = "aquahome_device_secret_2026"
 DEVICE_ID     = 4
-INTERVAL_SECS = 10    # cada 10 segundos lee sensores
-SAVE_INTERVAL = 1800  # cada 30 minutos guarda en BD
+INTERVAL_SECS = 10    
+SAVE_INTERVAL = 1800  
 
 RANGOS = {
-    "ph":          (6.5, 9.0),
-    "temperature": (0.0, 30.0),
-    "turbidity":   (0.0, 2.0),
-    "tds":         (0.0, 500.0),
+    "ph":          (6.3, 9.2),    # tolerancia ±0.2
+    "temperature": (0.0, 31.0),   # tolerancia +1°C
+    "turbidity":   (0.0, 3.0),    # tolerancia +1 NTU
+    "tds":         (0.0, 550.0),  # tolerancia +50 ppm
 }
 
 last_save_time = 0
 
-# ── Fuente de datos ────────────────────────────────────────────────
 def get_sensor_data() -> dict:
     return {
         "device_id":   DEVICE_ID,
-        "ph":          round(random.uniform(6.5, 7.5), 2),
-        "temperature": round(random.uniform(18.0, 28.0), 2),
-        "turbidity":   round(random.uniform(0.5, 2.0), 2),
-        "tds":         round(random.uniform(150.0, 450.0), 2),
+        "ph":          round(random.uniform(6.8, 7.8), 2),   # normal
+        "temperature": round(random.uniform(31.0, 32.46), 2), # algo alta, genera alerta
+        "turbidity":   round(random.uniform(3.5, 6.0), 2),   # alta, genera alerta
+        "tds":         round(random.uniform(150.0, 400.0), 2), # normal
     }
 
 def tiene_alerta(data: dict) -> bool:
@@ -37,7 +35,7 @@ def tiene_alerta(data: dict) -> bool:
             return True
     return False
 
-# ── Stream en tiempo real (no guarda en BD) ────────────────────────
+
 def stream_data(data: dict):
     try:
         requests.post(
