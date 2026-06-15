@@ -21,7 +21,7 @@ export default function DashboardScreen() {
       >
         <View style={{ width: '100%', zIndex: 10, alignItems: 'center' }}>
           <TanqueAgua nivel={70}
-          apta={estado?.status !== 'NO APTA'}
+          status={estado?.status}
           timestamp={ultimaLectura?.timestamp} />
         </View>
         <View style={{ width: '100%', zIndex: 10 }}>

@@ -21,8 +21,19 @@ export default function MenuCalidad({ lectura, estado }: MenuCalidadProps) {
     setAbierto(!abierto);
   };
 
-  const calidad = estado?.status === 'APTA' ? 'Buena' : estado?.status === 'NO APTA' ? 'Mala' : 'Buena';
-  const colorCalidad = estado?.status === 'NO APTA' ? '#E74C3C' : '#27AE60';
+  const calidad = estado?.status === 'APTA'
+    ? 'Buena'
+    : estado?.status === 'PRECAUCION'
+    ? 'Regular'
+    : estado?.status === 'NO APTA'
+    ? 'Mala'
+    : 'Buena';
+
+  const colorCalidad = estado?.status === 'NO APTA'
+    ? '#E74C3C'
+    : estado?.status === 'PRECAUCION'
+    ? '#F39C12'
+    : '#27AE60';
 
   const getEstado = (param: string, val?: number) => {
     if (val == null) return 'Sin datos';

@@ -19,16 +19,17 @@ const COLOR_ALERTA = '#1b2234';
 
 interface TanqueAguaProps {
   nivel: number;
-  apta?: boolean;
+  status?: 'APTA' | 'PRECAUCION' | 'NO APTA';
   timestamp?: string;
 }
 
-export default function TanqueAgua({ nivel = 70, apta = true, timestamp }: TanqueAguaProps) {
+export default function TanqueAgua({ nivel = 70, status, timestamp }: TanqueAguaProps) {
   const alturaAgua = useSharedValue(0);
   const ondaX = useSharedValue(0);
   const [mostrarEstado, setMostrarEstado] = useState(false);
 
-  const colorAgua = apta ? COLOR_NORMAL : COLOR_ALERTA;
+  const COLOR_PRECAUCION = '#11679c';
+  const colorAgua = status === 'NO APTA' ? COLOR_ALERTA : status === 'PRECAUCION' ? COLOR_PRECAUCION : COLOR_NORMAL;
 
   const iniciarOla = () => {
     ondaX.value = 0;
@@ -81,7 +82,7 @@ export default function TanqueAgua({ nivel = 70, apta = true, timestamp }: Tanqu
       </View>
       {mostrarEstado && (
         <View style={estilos.overlay}>
-          <EstadoAgua apta={apta} timestamp={timestamp} />
+          <EstadoAgua status={status} timestamp={timestamp} />
         </View>
       )}
     </View>

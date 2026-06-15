@@ -34,8 +34,10 @@ export function useReadings() {
           setLoading(false);
         }
 
-        const ws = new WebSocket(`ws://192.168.1.4:8000/ws/device/${dispositivo.id}`);
-        wsRef.current = ws;
+        const wsUrl = process.env.EXPO_PUBLIC_API!
+          .replace('http', 'ws')
+          .replace('/api/v1', '');
+        const ws = new WebSocket(`${wsUrl}/ws/device/${dispositivo.id}`);
 
         ws.onopen = () => {
           ws.send(JSON.stringify({ token }));

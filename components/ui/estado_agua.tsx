@@ -2,11 +2,11 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface EstadoAguaProps {
-  apta?: boolean;
+  status?: 'APTA' | 'PRECAUCION' | 'NO APTA';
   timestamp?: string;
 }
 
-export default function EstadoAgua({ apta = true, timestamp }: EstadoAguaProps) {
+export default function EstadoAgua({ status = 'APTA', timestamp }: EstadoAguaProps) {
   const formatearHora = (ts?: string) => {
     if (!ts) return '--';
     const fecha = new Date(ts.endsWith('Z') ? ts : ts + 'Z');
@@ -18,18 +18,20 @@ export default function EstadoAgua({ apta = true, timestamp }: EstadoAguaProps) 
     });
   };
 
+  const config = {
+    APTA:      { icono: 'checkmark' as const, texto: 'Todo correcto' },
+    PRECAUCION:{ icono: 'alert'     as const, texto: 'Precaución'    },
+    'NO APTA': { icono: 'warning'   as const, texto: 'Alerta de calidad' },
+  };
+
+  const { icono, texto } = config[status] ?? config['APTA'];
+
   return (
     <View style={estilos.container}>
       <View style={estilos.iconoContainer}>
-        <Ionicons
-          name={apta ? 'checkmark' : 'warning'}
-          size={40}
-          color="white"
-        />
+        <Ionicons name={icono} size={40} color="white" />
       </View>
-      <Text style={estilos.estado}>
-        {apta ? 'Todo correcto' : 'Alerta de calidad'}
-      </Text>
+      <Text style={estilos.estado}>{texto}</Text>
       <View style={estilos.lectura}>
         <Text style={estilos.lecturaTexto}>
           Ultima lectura: {formatearHora(timestamp)}

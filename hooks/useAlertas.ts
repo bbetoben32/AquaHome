@@ -1,21 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { obtenerAlertasHoy, obtenerAlertasSemana, eliminarAlerta } from '../services/alertService';
+import { obtenerAlertasHoyNoLeidas, obtenerAlertasSemanaNoLeidas, marcarAlertaLeida } from '../services/alertService';
 import { obtenerToken } from '../services/authService';
 import { obtenerDispositivo } from '../services/deviceService';
 
 export function useAlertas(filtro: 'hoy' | 'semanal') {
-  const [alertas, setAlertas]   = useState<any[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const wsRef                   = useRef<WebSocket | null>(null);
+  const [alertas, setAlertas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const wsRef                 = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     let mounted = true;
-
     const cargar = async () => {
       try {
         const data = filtro === 'hoy'
-          ? await obtenerAlertasHoy()
-          : await obtenerAlertasSemana();
+          ? await obtenerAlertasHoyNoLeidas()
+          : await obtenerAlertasSemanaNoLeidas();
         if (mounted) setAlertas(data);
       } catch (e) {
         console.log('Error cargando alertas:', e);
@@ -23,7 +22,6 @@ export function useAlertas(filtro: 'hoy' | 'semanal') {
         if (mounted) setLoading(false);
       }
     };
-
     cargar();
   }, [filtro]);
 
@@ -37,9 +35,7 @@ export function useAlertas(filtro: 'hoy' | 'semanal') {
       ]);
       if (!token || !dispositivo) return;
 
-      const ws = new WebSocket(
-        `ws://192.168.1.4:8000/ws/device/${dispositivo.id}`
-      );
+      const ws = new WebSocket(`ws://192.168.1.4:8000/ws/device/${dispositivo.id}`);
       wsRef.current = ws;
 
       ws.onopen = () => ws.send(JSON.stringify({ token }));
@@ -47,15 +43,15 @@ export function useAlertas(filtro: 'hoy' | 'semanal') {
       ws.onmessage = (e) => {
         const data = JSON.parse(e.data);
         if (data.event === 'nueva_alerta' && filtro === 'hoy') {
-            const alertasFormateadas = data.alertas.map((a: any) => ({
+          const alertasFormateadas = data.alertas.map((a: any) => ({
             ...a,
-            created_at: a.hora || a.created_at || new Date().toISOString(), // ← normaliza el campo
-            }));
-            if (mounted) {
+            created_at: a.hora || a.created_at || new Date().toISOString(),
+          }));
+          if (mounted) {
             setAlertas(prev => [...alertasFormateadas, ...prev]);
-            }
+          }
         }
-    };
+      };
 
       ws.onclose = () => {
         setTimeout(() => { if (mounted) conectarWs(); }, 5000);
@@ -72,10 +68,10 @@ export function useAlertas(filtro: 'hoy' | 'semanal') {
 
   const eliminar = async (id: string) => {
     try {
-      await eliminarAlerta(Number(id));
+      await marcarAlertaLeida(Number(id));
       setAlertas(prev => prev.filter(a => a.id !== Number(id)));
     } catch (e) {
-      console.log('Error eliminando alerta:', e);
+      console.log('Error marcando alerta:', e);
     }
   };
 

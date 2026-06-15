@@ -1,4 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import ModalRiesgo from './ModalRiesgo';
 
 interface TarjetaSensorProps {
   nombre: string;
@@ -23,20 +26,45 @@ const getColorEstado = (estado: string) => {
   }
 };
 
+const esFueraDeRango = (estado: string) =>
+  ['Fuera de rango', 'Turbia', 'Elevado'].includes(estado);
+
 export default function TarjetaSensor({ nombre, valor, unidad, estado }: TarjetaSensorProps) {
   const colores = getColorEstado(estado);
+  const [modalVisible, setModalVisible] = useState(false);
+  const fueraDeRango = esFueraDeRango(estado);
 
   return (
-    <View style={estilos.tarjeta}>
-      <Text style={estilos.nombre}>{nombre}</Text>
-      <View style={estilos.valorContainer}>
-        <Text style={estilos.valor}>{valor}</Text>
-        <Text style={estilos.unidad}> {unidad}</Text>
+    <>
+      <View style={estilos.tarjeta}>
+        {/* Header con nombre e ícono de alerta */}
+        <View style={estilos.nombreFila}>
+          <Text style={estilos.nombre}>{nombre}</Text>
+          {fueraDeRango && (
+            <TouchableOpacity onPress={() => setModalVisible(true)} style={estilos.alertaBoton}>
+              <Ionicons name="warning" size={16} color="#E74C3C" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={estilos.valorContainer}>
+          <Text style={estilos.valor}>{valor}</Text>
+          <Text style={estilos.unidad}> {unidad}</Text>
+        </View>
+
+        <View style={[estilos.estadoBadge, { backgroundColor: colores.bg }]}>
+          <Text style={[estilos.estadoTexto, { color: colores.text }]}>{estado}</Text>
+        </View>
       </View>
-      <View style={[estilos.estadoBadge, { backgroundColor: colores.bg }]}>
-        <Text style={[estilos.estadoTexto, { color: colores.text }]}>{estado}</Text>
-      </View>
-    </View>
+
+      {/* Modal de gestión de riesgo */}
+      <ModalRiesgo
+        visible={modalVisible}
+        parametro={nombre}
+        valor={valor}
+        onCerrar={() => setModalVisible(false)}
+      />
+    </>
   );
 }
 
@@ -50,10 +78,18 @@ const estilos = StyleSheet.create({
     padding: 12,
     gap: 6,
   },
+  nombreFila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   nombre: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 13,
     color: '#0F4C75',
+  },
+  alertaBoton: {
+    padding: 2,
   },
   valorContainer: {
     flexDirection: 'row',
