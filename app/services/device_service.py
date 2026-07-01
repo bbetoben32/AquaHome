@@ -23,14 +23,6 @@ def get_devices_by_user(db: Session, owner_id: int, skip: int = 0, limit: int = 
 def get_device_by_id(db: Session, device_id: int):
     return db.query(Device).filter(Device.id == device_id).first()
 
-def deactivate_device(db: Session, device_id: int):
-    device = db.query(Device).filter(Device.id == device_id).first()
-    if not device:
-        return None
-    device.is_active = False
-    db.commit()
-    db.refresh(device)
-    return device
 
 def update_last_seen(db: Session, device_id: int):
     device = db.query(Device).filter(Device.id == device_id).first()
