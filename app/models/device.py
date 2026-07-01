@@ -8,7 +8,8 @@ class Device(Base):
     id          = Column(Integer, primary_key=True, index=True)
     name        = Column(String, nullable=False)
     location    = Column(String, nullable=True)
-    device_type = Column(String, nullable=True)  # ← NUEVO: "alberca" o "tanque_elevado"
+    device_type = Column(String, nullable=True)
+    description = Column(String, nullable=True)  # ← NUEVO
     is_active   = Column(Boolean, default=True)
     created_at  = Column(DateTime, default=datetime.utcnow)
     last_seen   = Column(DateTime, nullable=True)

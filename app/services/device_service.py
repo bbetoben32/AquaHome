@@ -7,6 +7,8 @@ def create_device(db: Session, device_data: DeviceCreate, owner_id: int):
     new_device = Device(
         name=device_data.name,
         location=device_data.location,
+        device_type=device_data.device_type,
+        description=device_data.description,  # ← NUEVO
         owner_id=owner_id,
         last_seen=datetime.utcnow(),
     )
