@@ -8,6 +8,7 @@ from app.services.reading_service import create_reading, get_readings_by_device,
 from app.services.device_service import get_device_by_id
 from datetime import datetime, timedelta
 from app.models.reading import Reading
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter()
 
@@ -70,15 +71,19 @@ def get_history(
     if device.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="No tienes permiso")
 
-    ahora = datetime.utcnow()
+    ahora_utc = datetime.utcnow()
+    
     if periodo == "dia":
-        desde = ahora - timedelta(hours=24)
+        # Inicio del día de hoy en hora Colombia (UTC-5) convertido a UTC
+        ahora_colombia = ahora_utc - timedelta(hours=5)
+        inicio_dia_colombia = ahora_colombia.replace(hour=0, minute=0, second=0, microsecond=0)
+        desde = inicio_dia_colombia + timedelta(hours=5)  # convertir de vuelta a UTC
     elif periodo == "mes":
-        desde = ahora - timedelta(days=30)
+        desde = ahora_utc - timedelta(days=30)
     elif periodo == "año":
-        desde = ahora - timedelta(days=365)
+        desde = ahora_utc - timedelta(days=365)
     else:
-        desde = ahora - timedelta(hours=24)
+        desde = ahora_utc - timedelta(hours=24)
 
     lecturas = db.query(Reading).filter(
         Reading.device_id == device_id,
