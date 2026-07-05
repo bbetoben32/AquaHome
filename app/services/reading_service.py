@@ -75,3 +75,9 @@ def get_readings_by_device(db: Session, device_id: int, skip: int = 0, limit: in
         Reading.device_id == device_id
     ).order_by(desc(Reading.timestamp)).offset(skip).limit(limit).all()
 
+def get_last_reading_time(db: Session, device_id: int):
+    ultima = db.query(Reading).filter(
+        Reading.device_id == device_id
+    ).order_by(desc(Reading.timestamp)).first()
+    return ultima.timestamp if ultima else None
+
