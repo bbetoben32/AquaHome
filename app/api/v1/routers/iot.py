@@ -71,7 +71,7 @@ async def receive_sensor_data(
     # ── Actualizar last_seen ──────────────────────────────────────
     update_last_seen(db, data.device_id)
 
-    # ── Broadcast en tiempo real siempre ─────────────────────────
+    # ── Broadcast lectura en tiempo real siempre ──────────────────
     await manager.broadcast_device(data.device_id, {
         "event":       "nueva_lectura",
         "device_id":   data.device_id,
@@ -84,7 +84,34 @@ async def receive_sensor_data(
         "alerts":      estado["alerts"],
     })
 
-    # ── Alertas solo si se guardó la lectura ─────────────────────
+    # ── Broadcast alerta SIEMPRE que haya valores fuera de rango ──
+    if hay_alerta:
+        alertas_ws = []
+        valores = {
+            "ph":          data.ph,
+            "temperature": data.temperature,
+            "turbidity":   data.turbidity,
+            "tds":         data.tds,
+        }
+        for param, valor in valores.items():
+            if valor is None:
+                continue
+            min_val, max_val = RANGOS[param]
+            if not (min_val <= valor <= max_val):
+                estado_texto = "alto" if valor > max_val else "bajo"
+                alertas_ws.append({
+                    "mensaje":   f"{NOMBRES[param]} en {valor}{UNIDADES[param]}",
+                    "estado":    estado_texto,
+                    "device_id": data.device_id,
+                })
+
+        if alertas_ws:
+            await manager.broadcast_device(data.device_id, {
+                "event":   "nueva_alerta",
+                "alertas": alertas_ws,
+            })
+
+    # ── Guardar alertas en BD solo si se guardó la lectura ────────
     if reading and hay_alerta:
         valores = {
             "ph":          data.ph,
@@ -92,8 +119,6 @@ async def receive_sensor_data(
             "turbidity":   data.turbidity,
             "tds":         data.tds,
         }
-
-        alertas_generadas = []
         for param, valor in valores.items():
             if valor is None:
                 continue
@@ -101,25 +126,10 @@ async def receive_sensor_data(
             if not (min_val <= valor <= max_val):
                 estado_texto = "alto" if valor > max_val else "bajo"
                 mensaje = f"{NOMBRES[param]} en {valor}{UNIDADES[param]}"
-                alerta = create_alert(
+                create_alert(
                     db, data.device_id, mensaje, estado_texto,
                     "parametro", valor=valor, parametro=NOMBRES[param]
                 )
-                if alerta:
-                    alertas_generadas.append({
-                        "id":         alerta.id,
-                        "mensaje":    alerta.mensaje,
-                        "estado":     alerta.estado,
-                        "tipo":       alerta.tipo,
-                        "created_at": alerta.created_at.isoformat(),
-                        "device_id":  alerta.device_id,
-                    })
-
-        if alertas_generadas:
-            await manager.broadcast_device(data.device_id, {
-                "event":   "nueva_alerta",
-                "alertas": alertas_generadas,
-            })
 
     return {"message": "Datos recibidos correctamente", "reading_id": reading.id if reading else None}
 

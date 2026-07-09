@@ -10,12 +10,12 @@ WATER_QUALITY_RANGES = {
     "tds":         (0.0, 500.0)
 }
 
-# Zona de precaución — se pasó poco, no es crítico
+
 WATER_QUALITY_PRECAUCION = {
-    "ph":          (6.2, 9.3),   # ±0.3 de tolerancia
-    "temperature": (0.0, 33.0),  # hasta 33°C es precaución
-    "turbidity":   (0.0, 5.0),   # hasta 5 NTU es precaución
-    "tds":         (0.0, 600.0), # hasta 600 ppm es precaución
+    "ph":          (6.2, 9.3),   
+    "temperature": (0.0, 33.0),  
+    "turbidity":   (0.0, 5.0),   
+    "tds":         (0.0, 600.0), 
 }
 
 def evaluate_water_quality(reading: Reading):
