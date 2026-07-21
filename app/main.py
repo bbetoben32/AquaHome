@@ -12,6 +12,11 @@ from app.models.device import Device
 from app.api.v1.routers import auth, users, devices, readings, iot, ws, alerts, maintenance
 from app.core.websocket_manager import manager
 from datetime import datetime
+import os
+from app.core.config import settings
+from sqladmin import Admin
+from app.core.admin_auth import AdminAuth
+from app.core.admin import UserAdmin, DeviceAdmin, ReadingAdmin, AlertAdmin, MaintenanceAdmin
 
 async def check_timeouts():
     while True:
@@ -70,6 +75,16 @@ async def add_security_headers(request: Request, call_next):
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     return response
+
+# --- Panel de administración ---
+authentication_backend = AdminAuth(secret_key=settings.ADMIN_SECRET_KEY)
+admin = Admin(app, engine, authentication_backend=authentication_backend)
+
+admin.add_view(UserAdmin)
+admin.add_view(DeviceAdmin)
+admin.add_view(ReadingAdmin)
+admin.add_view(AlertAdmin)
+admin.add_view(MaintenanceAdmin)
 
 app.include_router(auth.router,        prefix="/api/v1/auth",        tags=["Auth"])
 app.include_router(users.router,       prefix="/api/v1/users",       tags=["Users"])
